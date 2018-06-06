@@ -1,0 +1,39 @@
+{
+  "name": "redux-socket-server",
+  "version": "0.0.1",
+  "description": "Lightweight framework for building shared redux stores using socket.io",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "test": "tap dist/test/*.js --cov",
+    "cover": "npm test -- --coverage-report=lcov",
+    "prepublish": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ajuhos/redux-socket-server.git"
+  },
+  "author": "Adam Juhos <ajuhos@logiscool.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ajuhos/redux-socket-server/issues"
+  },
+  "homepage": "https://github.com/ajuhos/redux-socket-server#readme",
+  "devDependencies": {
+
+  },
+  "keywords": [
+    "redux",
+    "react",
+    "socket.io",
+    "server",
+    "client",
+    "shared",
+    "store",
+    "state",
+    "lock",
+    "live"
+  ],
+  "dependencies": {
+  }
+}
