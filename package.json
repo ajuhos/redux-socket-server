@@ -19,9 +19,7 @@
     "url": "https://github.com/ajuhos/redux-socket-server/issues"
   },
   "homepage": "https://github.com/ajuhos/redux-socket-server#readme",
-  "devDependencies": {
-
-  },
+  "devDependencies": {},
   "keywords": [
     "redux",
     "react",
@@ -35,5 +33,7 @@
     "live"
   ],
   "dependencies": {
+    "@types/node": "^10.3.1",
+    "redux-socket-client": "^0.0.2"
   }
 }
