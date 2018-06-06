@@ -5,6 +5,9 @@ import { EventEmitter } from 'events';
 //TODO: Handle messages for previous connection: introduce a connection id.
 
 export class SharedStore extends EventEmitter {
+    readonly dispatch: (action: any) => void;
+    readonly dispatchToClient: (clientId: string, action: any) => void;
+
     constructor(io: any, store: any) {
         super();
 
@@ -54,17 +57,23 @@ export class SharedStore extends EventEmitter {
                 }
 
                 socket.on('present', () => socket.emit('present', extractPresent(socket.id, manager)));
-                socket.on('action', (action: any) => {
-                    if (!action || action.type === PRESENT) return;
-                    queue.unshift(action)
-                });
-                socket.on('client-action', (action: any) => {
-                    if (!action || action.type === PRESENT) return;
-                    action[CLIENT] = socket.id; //TODO: How to send client actions from manager?
-                    queue.unshift(action)
-                });
+                socket.on('action', this.dispatch);
+                //TODO: How to send client actions from manager
+                socket.on('client-action', this.dispatchToClient.bind(this, socket.id));
+
                 socket.emit('present', extractPresent(socket.id, manager))
             });
         });
+
+        this.dispatch = (action: any) => {
+            if (!action || action.type === PRESENT) return;
+            queue.unshift(action)
+        };
+
+        this.dispatchToClient = (clientId: string, action: any) => {
+            if (!action || action.type === PRESENT) return;
+            action[CLIENT] = clientId;
+            queue.unshift(action)
+        }
     }
 }
