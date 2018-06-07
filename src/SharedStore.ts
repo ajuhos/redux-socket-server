@@ -20,7 +20,7 @@ export class SharedStore extends EventEmitter {
             const { state, version } = present;
             const subState = {
                 shared: state.shared,
-                client: state.clients.get(id)
+                client: state.clients[state.clients.mappings[id]]
             };
             return { state: subState, version }
         }
@@ -57,7 +57,7 @@ export class SharedStore extends EventEmitter {
                 if(clients.indexOf(clientId) === -1) {
                     clients.push(clientId);
                     if (!manager) {
-                        queue.unshift({type: ADD_CLIENT, [CLIENT]: clientId})
+                        queue.unshift({type: ADD_CLIENT, [CLIENT]: clientId, payload: { id: clientId }})
                     }
                 }
 

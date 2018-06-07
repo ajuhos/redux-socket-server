@@ -2,23 +2,10 @@
 # yarn lockfile v1
 
 
-"@types/immutable@^3.8.7":
-  version "3.8.7"
-  resolved "https://registry.yarnpkg.com/@types/immutable/-/immutable-3.8.7.tgz#536d33d30f3f3d9a6d4642a219419fd82af633fb"
-  dependencies:
-    immutable "*"
-
 "@types/node@^10.3.1":
   version "10.3.1"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-10.3.1.tgz#51092fbacaed768a122a293814474fbf6e5e8b6d"
 
-immutable@*, immutable@^3.8.2:
-  version "3.8.2"
-  resolved "https://registry.yarnpkg.com/immutable/-/immutable-3.8.2.tgz#c2439951455bb39913daf281376f1530e104adf3"
-
-redux-socket-client@^0.0.6:
-  version "0.0.6"
-  resolved "https://registry.yarnpkg.com/redux-socket-client/-/redux-socket-client-0.0.6.tgz#349c4de94133988f16b0ff2c2777c9c0137b32b1"
-  dependencies:
-    "@types/immutable" "^3.8.7"
-    immutable "^3.8.2"
+redux-socket-client@^0.0.9:
+  version "0.0.9"
+  resolved "https://registry.yarnpkg.com/redux-socket-client/-/redux-socket-client-0.0.9.tgz#e2dc2447b4b4420f4e1f11a5fdeb71e8e42f8650"
