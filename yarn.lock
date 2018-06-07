@@ -16,9 +16,9 @@ immutable@*, immutable@^3.8.2:
   version "3.8.2"
   resolved "https://registry.yarnpkg.com/immutable/-/immutable-3.8.2.tgz#c2439951455bb39913daf281376f1530e104adf3"
 
-redux-socket-client@^0.0.5:
-  version "0.0.5"
-  resolved "https://registry.yarnpkg.com/redux-socket-client/-/redux-socket-client-0.0.5.tgz#e8f33f74689486870202359b35d4faf610f37c0b"
+redux-socket-client@^0.0.6:
+  version "0.0.6"
+  resolved "https://registry.yarnpkg.com/redux-socket-client/-/redux-socket-client-0.0.6.tgz#349c4de94133988f16b0ff2c2777c9c0137b32b1"
   dependencies:
     "@types/immutable" "^3.8.7"
     immutable "^3.8.2"
