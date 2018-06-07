@@ -47,22 +47,26 @@ export class SharedStore extends EventEmitter {
             setImmediate(processQueue)
         })();
 
+        const clients: string[] = [];
         io.on('connection', (socket: any) => {
             console.log('client connected', socket.id);
-            this.emit('authentication', socket, (manager: any) => {
-                socket.join(socket.id);
-
+            this.emit('authentication', socket, (manager: boolean, clientId: string = socket.id) => {
+                socket.join(clientId);
                 if(manager) socket.join('managers');
-                else {
-                    queue.unshift({ type: ADD_CLIENT, [CLIENT]: socket.id })
+
+                if(clients.indexOf(clientId) === -1) {
+                    clients.push(clientId);
+                    if (!manager) {
+                        queue.unshift({type: ADD_CLIENT, [CLIENT]: clientId})
+                    }
                 }
 
-                socket.on('present', () => socket.emit('present', extractPresent(socket.id, manager)));
+                socket.on('present', () => socket.emit('present', extractPresent(clientId, manager)));
                 socket.on('action', this.dispatch);
                 //TODO: How to send client actions from manager
-                socket.on('client-action', this.dispatchToClient.bind(this, socket.id));
+                socket.on('client-action', this.dispatchToClient.bind(this, clientId));
 
-                socket.emit('present', extractPresent(socket.id, manager))
+                socket.emit('present', extractPresent(clientId, manager))
             });
         });
 
