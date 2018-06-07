@@ -1,6 +1,6 @@
 {
   "name": "redux-socket-server",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "description": "Lightweight framework for building shared redux stores using socket.io",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -34,6 +34,6 @@
   ],
   "dependencies": {
     "@types/node": "^10.3.1",
-    "redux-socket-client": "^0.0.7"
+    "redux-socket-client": "^0.0.8"
   }
 }
