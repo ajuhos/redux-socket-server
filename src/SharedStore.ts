@@ -1,15 +1,40 @@
 import { PRESENT, ADD_CLIENT, tags } from 'redux-socket-client';
 import { EventEmitter } from 'events';
 
-const { CLIENT } = tags;
-
 //TODO: Handle messages for previous connection: introduce a connection id.
+
+export interface SharedStoreAction {
+    type: string,
+    payload: any
+}
+
+export interface SharedStoreQueueItem {
+    client: string|null,
+    action: SharedStoreAction
+}
+
+export interface SharedStoreQueue {
+    enqueue(client: string|null, action: SharedStoreAction): Promise<void>;
+    getNext(): Promise<SharedStoreQueueItem|undefined>
+}
+
+export class LocalQueue implements SharedStoreQueue{
+    private queue: SharedStoreQueueItem[] = [];
+
+    async enqueue(client: string | null, action: SharedStoreAction): Promise<void> {
+        this.queue.unshift({ client, action })
+    }
+
+    async getNext(): Promise<SharedStoreQueueItem|undefined> {
+        return this.queue.pop()
+    }
+}
 
 export class SharedStore extends EventEmitter {
     readonly dispatch: (action: any) => void;
     readonly dispatchToClient: (clientId: string, action: any) => void;
 
-    constructor(io: any, store: any) {
+    constructor(io: any, store: any, queue: SharedStoreQueue = new LocalQueue) {
         super();
 
         let present = {version: 0, state: store.getState()};
@@ -25,24 +50,25 @@ export class SharedStore extends EventEmitter {
             return { state: subState, version }
         }
 
-        const queue: any[] = [];
-        (function processQueue() {
-            while (queue.length) {
-                const action = queue.pop();
-
+        (async function processQueue() {
+            let item = await queue.getNext();
+            while (item) {
+                const { action, client } = item;
                 store.dispatch(action);
                 present = {version: present.version + 1, state: store.getState()};
 
-                if(action[CLIENT]) {
+                if(client) {
                     console.log('client action', action);
-                    io.to(action[CLIENT]).emit('action', {action, version: present.version});
-                    io.to('managers').emit('action', {action, client: action[CLIENT], version: present.version});
+                    io.to(client).emit('action', {action, version: present.version});
+                    io.to('managers').emit('action', {action, client, version: present.version});
                     io.emit('version', present.version)
                 }
                 else {
                     console.log('action', action);
                     io.emit('action', {action, version: present.version})
                 }
+
+                item = await queue.getNext();
             }
             setImmediate(processQueue)
         })();
@@ -57,7 +83,7 @@ export class SharedStore extends EventEmitter {
                 if(clients.indexOf(clientId) === -1) {
                     clients.push(clientId);
                     if (!manager) {
-                        queue.unshift({type: ADD_CLIENT, [CLIENT]: clientId, payload: { id: clientId }})
+                        queue.enqueue(clientId,{type: ADD_CLIENT, payload: { id: clientId }})
                     }
                 }
 
@@ -72,13 +98,12 @@ export class SharedStore extends EventEmitter {
 
         this.dispatch = (action: any) => {
             if (!action || action.type === PRESENT) return;
-            queue.unshift(action)
+            queue.enqueue(null, action)
         };
 
         this.dispatchToClient = (clientId: string, action: any) => {
             if (!action || action.type === PRESENT) return;
-            action[CLIENT] = clientId;
-            queue.unshift(action)
+            queue.enqueue(clientId, action)
         }
     }
 }
