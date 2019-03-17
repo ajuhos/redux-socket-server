@@ -1,4 +1,4 @@
-import { PRESENT, ADD_CLIENT, tags } from 'redux-socket-client';
+import { PRESENT, ADD_CLIENT } from 'redux-socket-client';
 import { EventEmitter } from 'events';
 
 //TODO: Handle messages for previous connection: introduce a connection id.
