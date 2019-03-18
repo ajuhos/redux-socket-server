@@ -158,7 +158,7 @@ export class RedisQueue implements SharedStoreQueue {
 
                 if (data) {
                     this.present = JSON.parse(data);
-                    resolve()
+                    resolve(this.present)
                 }
                 else {
                     reject(new Error('No data found in Redis.'))
