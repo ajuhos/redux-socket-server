@@ -16,7 +16,7 @@ export class RedisQueue implements SharedStoreQueue {
     private lockInterval: any;
     private redlock: Redlock;
 
-    constructor(redisPub: RedisClient, redisSub: RedisClient, prefix: string) {
+    constructor(redisPub: RedisClient, redisSub: RedisClient, prefix: string = '') {
         this.redis = redisPub;
         this.nrp = new NRP({ emitter: redisPub, receiver: redisSub, scope: prefix });
         this.prefix = prefix ? `${prefix}:` : '';
@@ -74,7 +74,7 @@ export class RedisQueue implements SharedStoreQueue {
 
                 if (data) {
                     this.present = JSON.parse(data);
-                    store.dispatch({ type: PRESENT, payload: data });
+                    store.dispatch({ type: PRESENT, payload: this.present });
 
                     debug(`[${this.prefix}] init from existing present`)
                 }
@@ -105,7 +105,9 @@ export class RedisQueue implements SharedStoreQueue {
         return new Promise(async (resolve, reject) => {
             if(await this.acquireLock()) {
                 this.redis.rpop(this.prefix + 'queue', (err, rawData) => {
-                    if (err) return reject(err);
+                    /*if (err) {
+                        return reject(err);
+                    }*/
 
                     const data = rawData ? JSON.parse(rawData) : undefined;
                     resolve(data);
@@ -132,7 +134,10 @@ export class RedisQueue implements SharedStoreQueue {
 
             if(await this.acquireLock()) {
                 this.redis.set(this.prefix + 'present', JSON.stringify(data), (err) => {
-                    if (err) reject(err);
+                    if (err) {
+                        debug(`[${this.prefix}] failed to save present`);
+                        reject(err);
+                    }
                     else resolve()
                 })
             }
@@ -146,7 +151,10 @@ export class RedisQueue implements SharedStoreQueue {
     async loadPresent(): Promise<any> {
         return new Promise<void>((resolve, reject) => {
             this.redis.get(this.prefix + 'present', async (err, data) => {
-                if (err) return reject(err);
+                if (err) {
+                    debug(`[${this.prefix}] failed to load present`);
+                    return reject(err);
+                }
 
                 if (data) {
                     this.present = JSON.parse(data);
