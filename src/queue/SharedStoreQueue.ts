@@ -8,12 +8,23 @@ export interface SharedStoreQueueItem {
     action: SharedStoreAction
 }
 
+export interface SharedStorePresent {
+    version: number,
+    state: {
+        shared: any,
+        clients: {
+            items: any[],
+            mappings: { [key:string]: number }
+        }
+    }
+}
+
 export interface SharedStoreQueue {
     init(store: ReduxStore): Promise<void>;
     enqueue(client: string|null, action: SharedStoreAction): Promise<void>
     getNext(): Promise<SharedStoreQueueItem|undefined>
-    savePresent(store: any): Promise<void>
-    loadPresent(): Promise<any>
+    savePresent(store: SharedStorePresent): Promise<void>
+    loadPresent(): Promise<SharedStorePresent>
 }
 
 export interface ReduxStore {

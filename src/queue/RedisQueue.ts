@@ -40,8 +40,9 @@ export class RedisQueue implements SharedStoreQueue {
 
     private initLock(lock: Redlock.Lock) {
         if(this.lock) return;
+
         this.lock = lock;
-        this.lockInterval = setInterval(() => lock.extend(1000), 100);
+        this.lockInterval = setInterval(() => lock.extend(1000).catch(() => this.cancelLock()), 100);
 
         debug(`[${this.prefix}] acquired lock`)
     }
@@ -56,7 +57,7 @@ export class RedisQueue implements SharedStoreQueue {
         return new Promise(resolve => {
             if(this.lock) return resolve(true);
 
-            this.redlock.lock(this.prefix + 'queue', 1000)
+            this.redlock.lock(this.prefix + 'lock', 1000)
                 .then(lock => {
                     this.initLock(lock);
                     resolve(true)
@@ -70,7 +71,10 @@ export class RedisQueue implements SharedStoreQueue {
             this.store = store;
 
             this.redis.get(this.prefix + 'present', async (err, data) => {
-                if (err) return reject(err);
+                if (err) {
+                    debug(`[${this.prefix}] failed to init`);
+                    return reject(err)
+                }
 
                 if (data) {
                     this.present = JSON.parse(data);
@@ -93,7 +97,10 @@ export class RedisQueue implements SharedStoreQueue {
     enqueue(client: string | null, action: SharedStoreAction) {
         return new Promise<void>((resolve, reject) => {
             this.redis.lpush(this.prefix + 'queue', JSON.stringify({client, action}), (err) => {
-                if (err) return reject(err);
+                if (err) {
+                    debug(`[${this.prefix}] failed to enqueue`);
+                    return reject(err)
+                }
                 resolve();
 
                 debug(`[${this.prefix}] enqueued action: ${action.type} (${client || 'no client'})`)
@@ -105,14 +112,17 @@ export class RedisQueue implements SharedStoreQueue {
         return new Promise(async (resolve, reject) => {
             if(await this.acquireLock()) {
                 this.redis.rpop(this.prefix + 'queue', (err, rawData) => {
-                    /*if (err) {
-                        return reject(err);
-                    }*/
+                    if (err) {
+                        debug(`[${this.prefix}] failed to get next`);
+                        return reject(err)
+                    }
 
                     const data = rawData ? JSON.parse(rawData) : undefined;
                     resolve(data);
 
                     if(data) {
+                        this.nrp.emit('action', data);
+
                         debug(`[${this.prefix}] received action: ${data.action.type} (${data.client || 'no client'})`)
                     }
                 })

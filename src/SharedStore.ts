@@ -1,7 +1,9 @@
-import { PRESENT, ADD_CLIENT } from 'redux-socket-client';
+import { PRESENT, ADD_CLIENT, tags } from 'redux-socket-client';
 import { EventEmitter } from 'events';
-import {SharedStoreQueue, LocalQueue, ReduxStore} from "./queue";
+import {SharedStoreQueue, LocalQueue, ReduxStore, SharedStoreAction} from "./queue";
 import * as SocketIO from "socket.io";
+const debug = require('debug')('redux-socket-server');
+const { CLIENT } = tags;
 
 //TODO: Handle messages for previous connection: introduce a connection id.
 
@@ -19,27 +21,28 @@ export class SharedStore extends EventEmitter {
             const { state, version } = present;
             const subState = {
                 shared: state.shared,
-                client: state.clients[state.clients.mappings[id]]
+                client: state.clients.items[state.clients.mappings[id]]
             };
             return { state: subState, version }
         }
 
-        (async function processQueue() {
+        const processQueue = async () => {
             let item = await queue.getNext();
             while (item) {
                 const { action, client } = item;
-                store.dispatch(action);
+                store.dispatch(client ? { ...action, [CLIENT]: client } : action);
+
                 present = {version: present.version + 1, state: store.getState()};
                 await queue.savePresent(present);
 
                 if(client) {
-                    console.log('client action', action);
-                    io.to(client).emit('action', {action, version: present.version});
+                    debug('client action', action);
+                    io.to(client).emit('action', {action, client, version: present.version});
                     io.to('managers').emit('action', {action, client, version: present.version});
                     io.emit('version', present.version)
                 }
                 else {
-                    console.log('action', action);
+                    debug('action', action);
                     io.emit('action', {action, version: present.version})
                 }
 
@@ -48,28 +51,49 @@ export class SharedStore extends EventEmitter {
                 item = await queue.getNext();
             }
             setImmediate(processQueue)
-        })();
+        };
+        processQueue();
 
-        const clients: string[] = [];
         io.on('connection', (socket: any) => {
-            console.log('client connected', socket.id);
+            debug('client connected', socket.id);
             this.emit('authentication', socket, (manager: boolean, clientId: string = socket.id) => {
                 socket.join(clientId);
                 if(manager) socket.join('managers');
 
-                if(clients.indexOf(clientId) === -1) {
-                    clients.push(clientId);
-                    if (!manager) {
-                        queue.enqueue(clientId,{type: ADD_CLIENT, payload: { id: clientId }})
-                    }
-                }
+                debug('client authenticated', socket.id, '-->', clientId, manager ? '(manager)' : '');
 
-                socket.on('present', () => socket.emit('present', extractPresent(clientId, manager)));
                 socket.on('action', this.dispatch);
                 //TODO: How to send client actions from manager
                 socket.on('client-action', this.dispatchToClient.bind(this, clientId));
 
-                socket.emit('present', extractPresent(clientId, manager))
+                //TODO: Refactor this mess...
+                if(typeof present.state.clients.mappings[clientId] === 'undefined') {
+                    if (manager) {
+                        socket.on('present', () => socket.emit('present', extractPresent(clientId, manager)));
+                        socket.emit('present', extractPresent(clientId, manager));
+                    }
+                    else {
+                        //TODO: Better solution?
+                        const setupClient = (action: SharedStoreAction, client: string) => {
+                            if(action.type === ADD_CLIENT && client === clientId) {
+                                EventEmitter.prototype.removeListener.call(this,'action', setupClient);
+                                socket.on('present', () => socket.emit('present', extractPresent(clientId, manager)));
+                                socket.emit('present', extractPresent(clientId, manager));
+
+                                debug('client inited:', clientId);
+                            }
+                        };
+                        this.on('action', setupClient);
+
+                        queue.enqueue(clientId,{type: ADD_CLIENT, payload: { id: clientId }})
+                    }
+                }
+                else {
+                    socket.on('present', () => socket.emit('present', extractPresent(clientId, manager)));
+                    socket.emit('present', extractPresent(clientId, manager));
+
+                    debug('client reconnected:', clientId);
+                }
             });
         });
     }
