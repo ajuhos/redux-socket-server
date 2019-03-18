@@ -1,43 +1,17 @@
 import { PRESENT, ADD_CLIENT } from 'redux-socket-client';
 import { EventEmitter } from 'events';
+import {SharedStoreQueue, LocalQueue, ReduxStore} from "./queue";
+import * as SocketIO from "socket.io";
 
 //TODO: Handle messages for previous connection: introduce a connection id.
-
-export interface SharedStoreAction {
-    type: string,
-    payload: any
-}
-
-export interface SharedStoreQueueItem {
-    client: string|null,
-    action: SharedStoreAction
-}
-
-export interface SharedStoreQueue {
-    enqueue(client: string|null, action: SharedStoreAction): Promise<void>;
-    getNext(): Promise<SharedStoreQueueItem|undefined>
-}
-
-export class LocalQueue implements SharedStoreQueue{
-    private queue: SharedStoreQueueItem[] = [];
-
-    async enqueue(client: string | null, action: SharedStoreAction): Promise<void> {
-        this.queue.unshift({ client, action })
-    }
-
-    async getNext(): Promise<SharedStoreQueueItem|undefined> {
-        return this.queue.pop()
-    }
-}
 
 export class SharedStore extends EventEmitter {
     readonly dispatch: (action: any) => void;
     readonly dispatchToClient: (clientId: string, action: any) => void;
 
-    constructor(io: any, store: any, queue: SharedStoreQueue = new LocalQueue) {
-        super();
-
-        let present = {version: 0, state: store.getState()};
+    private async init(io: SocketIO.Server, store: ReduxStore, queue: SharedStoreQueue) {
+        await queue.init(store);
+        let present = await queue.loadPresent();
 
         function extractPresent(id: string, isManager: boolean) {
             if(isManager) return present;
@@ -56,6 +30,7 @@ export class SharedStore extends EventEmitter {
                 const { action, client } = item;
                 store.dispatch(action);
                 present = {version: present.version + 1, state: store.getState()};
+                await queue.savePresent(present);
 
                 if(client) {
                     console.log('client action', action);
@@ -67,6 +42,8 @@ export class SharedStore extends EventEmitter {
                     console.log('action', action);
                     io.emit('action', {action, version: present.version})
                 }
+
+                this.emit('action', action, client, present);
 
                 item = await queue.getNext();
             }
@@ -95,6 +72,10 @@ export class SharedStore extends EventEmitter {
                 socket.emit('present', extractPresent(clientId, manager))
             });
         });
+    }
+
+    constructor(io: SocketIO.Server, store: ReduxStore, queue: SharedStoreQueue = new LocalQueue) {
+        super();
 
         this.dispatch = (action: any) => {
             if (!action || action.type === PRESENT) return;
@@ -104,6 +85,8 @@ export class SharedStore extends EventEmitter {
         this.dispatchToClient = (clientId: string, action: any) => {
             if (!action || action.type === PRESENT) return;
             queue.enqueue(clientId, action)
-        }
+        };
+
+        this.init(io, store, queue)
     }
 }
