@@ -282,7 +282,8 @@ The `SharedStore` implementation supports almost every method specified by the R
  - `getState()`
  - `subscribe(listener)`
  
-It also adds a custom method for dispatching actions to a specified client: `dispatchToClient(clientId, action)`.
+It also adds a custom method for dispatching actions to a specified client: `dispatchToClient(clientId, action)`, 
+plus one for stopping the store: `stop()`.
 
 Handling incoming actions on the server side can be implemented using `subscribe`, which provides
 some useful parameters for the `listener`:
