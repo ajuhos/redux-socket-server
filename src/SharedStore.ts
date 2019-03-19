@@ -1,6 +1,6 @@
 import { PRESENT, ADD_CLIENT, tags } from 'redux-socket-client';
 import { EventEmitter } from 'events';
-import {SharedStoreQueue, LocalQueue, ReduxStore, SharedStoreAction} from "./queue";
+import {SharedStoreQueue, LocalQueue, ReduxStore, SharedStoreAction, SharedStorePresent} from "./queue";
 import * as SocketIO from "socket.io";
 const debug = require('debug')('redux-socket-server');
 const { CLIENT } = tags;
@@ -11,6 +11,10 @@ export class SharedStore extends EventEmitter {
     readonly dispatch: (action: any) => void;
     readonly dispatchToClient: (clientId: string, action: any) => void;
     readonly getState: () => any;
+
+    subscribe(listener: (action: SharedStoreAction, clientId: string|undefined, prevPresent: SharedStorePresent, present: SharedStorePresent) => void) {
+        this.on('action', listener)
+    }
 
     private async init(io: SocketIO.Server, store: ReduxStore, queue: SharedStoreQueue) {
         await queue.init(store);
