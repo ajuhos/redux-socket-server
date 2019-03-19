@@ -17,6 +17,8 @@ export class RedisQueue extends EventEmitter implements SharedStoreQueue  {
     private lockInterval: any;
     private redlock: Redlock;
 
+    lockTTL = 1000;
+
     constructor(redisPub: RedisClient, redisSub: RedisClient, prefix: string = '') {
         super();
 
@@ -45,7 +47,10 @@ export class RedisQueue extends EventEmitter implements SharedStoreQueue  {
         if(this.lock) return;
 
         this.lock = lock;
-        this.lockInterval = setInterval(() => lock.extend(1000).catch(() => this.cancelLock()), 100);
+        this.lockInterval = setInterval(() => lock.extend(this.lockTTL).catch((e) => {
+            debug(`[${this.prefix}] lost lock`, e);
+            this.cancelLock()
+        }), 100);
 
         try {
             this.emit('lock');
@@ -67,7 +72,7 @@ export class RedisQueue extends EventEmitter implements SharedStoreQueue  {
         return new Promise(resolve => {
             if(this.lock) return resolve(true);
 
-            this.redlock.lock(this.prefix + 'lock', 1000)
+            this.redlock.lock(this.prefix + 'lock', this.lockTTL)
                 .then(lock => {
                     this.initLock(lock);
                     resolve(true)
