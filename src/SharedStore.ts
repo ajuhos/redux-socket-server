@@ -32,6 +32,7 @@ export class SharedStore extends EventEmitter {
                 const { action, client } = item;
                 store.dispatch(client ? { ...action, [CLIENT]: client } : action);
 
+                const prevPresent = present;
                 present = {version: present.version + 1, state: store.getState()};
                 await queue.savePresent(present);
 
@@ -46,7 +47,7 @@ export class SharedStore extends EventEmitter {
                     io.emit('action', {action, version: present.version})
                 }
 
-                this.emit('action', action, client, present);
+                this.emit('action', action, client, prevPresent, present);
 
                 item = await queue.getNext();
             }
