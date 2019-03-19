@@ -30,7 +30,7 @@ export class RedisQueue extends EventEmitter implements SharedStoreQueue  {
                 // the expected clock drift; for more details
                 // see http://redis.io/topics/distlock
                 driftFactor: 0.01,
-                retryCount:  1
+                retryCount:  0
             });
 
         this.nrp.on('action', (item: SharedStoreQueueItem) => {

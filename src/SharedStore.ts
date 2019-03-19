@@ -110,6 +110,7 @@ export class SharedStore extends EventEmitter {
 
     constructor(io: SocketIO.Server, store: ReduxStore, queue: SharedStoreQueue = new LocalQueue) {
         super();
+        this.setMaxListeners(0);
 
         this.dispatch = (action: any) => {
             if (!action || action.type === PRESENT) return;
