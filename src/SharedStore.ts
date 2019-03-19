@@ -74,36 +74,31 @@ export class SharedStore extends EventEmitter {
                 debug('client authenticated', socket.id, '-->', clientId, manager ? '(manager)' : '');
 
                 socket.on('action', this.dispatch);
+
                 //TODO: How to send client actions from manager
                 socket.on('client-action', this.dispatchToClient.bind(this, clientId));
 
-                //TODO: Refactor this mess...
-                if(typeof present.state.clients.mappings[clientId] === 'undefined') {
-                    if (manager) {
-                        socket.on('present', () => socket.emit('present', extractPresent(clientId, manager)));
-                        socket.emit('present', extractPresent(clientId, manager));
-                    }
-                    else {
-                        //TODO: Better solution?
-                        const setupClient = (action: SharedStoreAction, client: string) => {
-                            if(action.type === ADD_CLIENT && client === clientId) {
-                                EventEmitter.prototype.removeListener.call(this,'action', setupClient);
-                                socket.on('present', () => socket.emit('present', extractPresent(clientId, manager)));
-                                socket.emit('present', extractPresent(clientId, manager));
+                if(!manager && typeof present.state.clients.mappings[clientId] === 'undefined') {
+                    //TODO: Better solution?
+                    const setupClient = (action: SharedStoreAction, client: string) => {
+                        if(action.type === ADD_CLIENT && client === clientId) {
+                            EventEmitter.prototype.removeListener.call(this,'action', setupClient);
+                            socket.on('present', () => socket.emit('present', extractPresent(clientId, manager)));
+                            socket.emit('present', extractPresent(clientId, manager));
 
-                                debug('client inited:', clientId);
-                            }
-                        };
-                        this.on('action', setupClient);
+                            debug('client inited:', clientId);
+                        }
+                    };
+                    this.on('action', setupClient);
 
-                        queue.enqueue(clientId,{type: ADD_CLIENT, payload: { id: clientId }})
-                    }
+                    queue.enqueue(clientId,{type: ADD_CLIENT, payload: { id: clientId }})
                 }
                 else {
                     socket.on('present', () => socket.emit('present', extractPresent(clientId, manager)));
                     socket.emit('present', extractPresent(clientId, manager));
 
-                    debug('client reconnected:', clientId);
+                    if(manager) debug('manager connected:', clientId);
+                    else debug('client reconnected:', clientId)
                 }
             });
         });
