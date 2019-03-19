@@ -52,6 +52,7 @@ The store from a **standard client**:
         // Read-only data, same for every client    
     }, 
     client: { 
+        id: 'client-a',
         // Unique data of this client (also available on the server)   
     },
     // Anything else, only available locally for this client  
