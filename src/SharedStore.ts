@@ -10,6 +10,7 @@ const { CLIENT } = tags;
 export class SharedStore extends EventEmitter {
     readonly dispatch: (action: any) => void;
     readonly dispatchToClient: (clientId: string, action: any) => void;
+    readonly getState: () => any;
 
     private async init(io: SocketIO.Server, store: ReduxStore, queue: SharedStoreQueue) {
         await queue.init(store);
@@ -47,7 +48,12 @@ export class SharedStore extends EventEmitter {
                     io.emit('action', {action, version: present.version})
                 }
 
-                this.emit('action', action, client, prevPresent, present);
+                try {
+                    this.emit('action', action, client, prevPresent, present);
+                }
+                catch (e) {
+                    debug(`error in action (${action.type}) event handler`, e)
+                }
 
                 item = await queue.getNext();
             }
@@ -111,6 +117,8 @@ export class SharedStore extends EventEmitter {
             if (!action || action.type === PRESENT) return;
             queue.enqueue(clientId, action)
         };
+
+        this.getState = () => store.getState();
 
         this.init(io, store, queue)
     }

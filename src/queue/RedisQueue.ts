@@ -47,7 +47,12 @@ export class RedisQueue extends EventEmitter implements SharedStoreQueue  {
         this.lock = lock;
         this.lockInterval = setInterval(() => lock.extend(1000).catch(() => this.cancelLock()), 100);
 
-        this.emit('lock');
+        try {
+            this.emit('lock');
+        }
+        catch (e) {
+            debug(`[${this.prefix}] error in lock event handler`, e)
+        }
 
         debug(`[${this.prefix}] acquired lock`)
     }
@@ -173,6 +178,9 @@ export class RedisQueue extends EventEmitter implements SharedStoreQueue  {
 
                 if (data) {
                     this.present = JSON.parse(data);
+                    resolve(this.present)
+                }
+                else if(this.present) {
                     resolve(this.present)
                 }
                 else {

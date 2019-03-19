@@ -8,15 +8,17 @@ export interface SharedStoreQueueItem {
     action: SharedStoreAction
 }
 
+export interface SharedStoreState {
+    shared: any,
+    clients: {
+        items: any[],
+        mappings: { [key:string]: number }
+    }
+}
+
 export interface SharedStorePresent {
     version: number,
-    state: {
-        shared: any,
-        clients: {
-            items: any[],
-            mappings: { [key:string]: number }
-        }
-    }
+    state: SharedStoreState
 }
 
 export interface SharedStoreQueue {
@@ -28,6 +30,6 @@ export interface SharedStoreQueue {
 }
 
 export interface ReduxStore {
-    getState(): any
+    getState(): SharedStoreState
     dispatch(action: SharedStoreAction): void
 }
