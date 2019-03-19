@@ -12,6 +12,8 @@ export class SharedStore extends EventEmitter {
     readonly dispatchToClient: (clientId: string, action: any) => void;
     readonly getState: () => any;
 
+    private shouldStop = false;
+
     subscribe(listener: (action: SharedStoreAction, clientId: string|undefined, prevPresent: SharedStorePresent, present: SharedStorePresent) => void) {
         this.on('action', listener)
     }
@@ -32,6 +34,8 @@ export class SharedStore extends EventEmitter {
         }
 
         const processQueue = async () => {
+            if(this.shouldStop) return;
+
             let item = await queue.getNext();
             while (item) {
                 const { action, client } = item;
@@ -120,5 +124,9 @@ export class SharedStore extends EventEmitter {
         this.getState = () => store.getState();
 
         this.init(io, store, queue)
+    }
+
+    stop() {
+        this.shouldStop = true
     }
 }
