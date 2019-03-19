@@ -1,6 +1,6 @@
 {
   "name": "redux-socket-server",
-  "version": "0.1.24",
+  "version": "0.1.25",
   "description": "Lightweight framework for building shared redux stores using socket.io",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -20,7 +20,9 @@
   },
   "homepage": "https://github.com/ajuhos/redux-socket-server#readme",
   "devDependencies": {
-    "redux-socket-client": "^0.1.1"
+    "@types/redis": "^2.8.11",
+    "@types/socket.io": "^2.1.2",
+    "redux-socket-client": "^0.1.5"
   },
   "keywords": [
     "redux",
@@ -36,14 +38,14 @@
   ],
   "dependencies": {
     "@types/node": "^10.3.1",
-    "@types/redis": "^2.8.11",
     "@types/redlock": "^3.0.2",
-    "@types/socket.io": "^2.1.2",
     "debug": "^4.1.1",
     "node-redis-pubsub": "^4.0.0",
     "redlock": "^3.1.2"
   },
   "peerDependencies": {
-    "redux-socket-client": "^0.1.1"
+    "@types/redis": "^2.8.11",
+    "@types/socket.io": "^2.1.2",
+    "redux-socket-client": "^0.1.5"
   }
 }
