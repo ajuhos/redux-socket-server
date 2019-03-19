@@ -2,10 +2,11 @@ import { SharedStoreQueue, SharedStoreQueueItem, ReduxStore, SharedStoreAction }
 import {RedisClient} from "redis";
 import {PRESENT} from "redux-socket-client";
 import * as Redlock from "redlock";
+import {EventEmitter} from "events";
 const NRP = require('node-redis-pubsub');
 const debug = require('debug')('redux-socket-server');
 
-export class RedisQueue implements SharedStoreQueue {
+export class RedisQueue extends EventEmitter implements SharedStoreQueue  {
     private readonly queue: SharedStoreQueueItem[] = [];
     private readonly redis: RedisClient;
     private readonly nrp: any;
@@ -17,6 +18,8 @@ export class RedisQueue implements SharedStoreQueue {
     private redlock: Redlock;
 
     constructor(redisPub: RedisClient, redisSub: RedisClient, prefix: string = '') {
+        super();
+
         this.redis = redisPub;
         this.nrp = new NRP({ emitter: redisPub, receiver: redisSub, scope: prefix });
         this.prefix = prefix ? `${prefix}:` : '';
@@ -43,6 +46,8 @@ export class RedisQueue implements SharedStoreQueue {
 
         this.lock = lock;
         this.lockInterval = setInterval(() => lock.extend(1000).catch(() => this.cancelLock()), 100);
+
+        this.emit('lock');
 
         debug(`[${this.prefix}] acquired lock`)
     }
