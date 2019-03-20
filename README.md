@@ -140,6 +140,7 @@ export const client = (state = {}, action) => {
         case ADD_CLIENT:
             return {
                 id: payload.id,
+                ...payload.details
                 // Anything else you need for every client store...
             }
 
@@ -260,8 +261,9 @@ client.
 store.on('authentication', (socket, authorize) => {
     if(isAuthenticated(socket)) {
         authorize(
-            isManager(socket), // Decide whether this user is a manager.
-            getUserId(socket)  // Provide an optional user id.
+            isManager(socket),     // Decide whether this user is a manager.
+            getUserId(socket),     // Provide an optional user id.
+            getUserDetails(socket) // [optional] User details.
         )
     }
     else {

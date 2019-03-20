@@ -71,7 +71,7 @@ export class SharedStore extends EventEmitter {
 
         io.on('connection', (socket: any) => {
             debug('client connected', socket.id);
-            this.emit('authentication', socket, (manager: boolean, clientId: string = socket.id) => {
+            this.emit('authentication', socket, (manager: boolean, clientId: string = socket.id, clientDetails: any = null) => {
                 socket.join(clientId);
                 if(manager) socket.join('managers');
 
@@ -95,7 +95,7 @@ export class SharedStore extends EventEmitter {
                     };
                     this.on('action', setupClient);
 
-                    queue.enqueue(clientId,{type: ADD_CLIENT, payload: { id: clientId }})
+                    queue.enqueue(clientId,{type: ADD_CLIENT, payload: { id: clientId, details: clientDetails }})
                 }
                 else {
                     socket.on('present', () => socket.emit('present', extractPresent(clientId, manager)));
