@@ -1,4 +1,10 @@
-import { SharedStoreQueue, SharedStoreQueueItem, ReduxStore, SharedStoreAction } from "./SharedStoreQueue";
+import {
+    SharedStoreQueue,
+    SharedStoreQueueItem,
+    ReduxStore,
+    SharedStoreAction,
+    SharedStorePresent
+} from "./SharedStoreQueue";
 import {RedisClient} from "redis";
 import {PRESENT} from "redux-socket-client";
 import * as Redlock from "redlock";
@@ -153,7 +159,7 @@ export class RedisQueue extends EventEmitter implements SharedStoreQueue  {
         })
     }
 
-    async savePresent(data: any) {
+    async savePresent(data: SharedStorePresent) {
         return new Promise<void>(async (resolve, reject) => {
             this.present = data;
 
@@ -163,7 +169,10 @@ export class RedisQueue extends EventEmitter implements SharedStoreQueue  {
                         debug(`[${this.prefix}] failed to save present`);
                         reject(err);
                     }
-                    else resolve()
+                    else {
+                        debug(`[${this.prefix}] saved present`, 'v'+data.version, data.state);
+                        resolve()
+                    }
                 })
             }
             else {
