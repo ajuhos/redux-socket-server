@@ -106,6 +106,8 @@ export class SharedStore extends EventEmitter {
                 }
             });
         });
+
+        this.emit('ready')
     }
 
     constructor(io: SocketIO.Server, store: ReduxStore, queue: SharedStoreQueue = new LocalQueue) {
