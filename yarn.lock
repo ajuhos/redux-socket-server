@@ -83,6 +83,7 @@ redlock@^3.1.2:
   dependencies:
     bluebird "^3.3.3"
 
-redux-socket-client@^0.1.5:
-  version "0.1.5"
-  resolved "https://registry.yarnpkg.com/redux-socket-client/-/redux-socket-client-0.1.5.tgz#ebba2bad06dd7d67fd72ce273047c3fb02bbba8e"
+redux-socket-client@^0.1.13:
+  version "0.1.13"
+  resolved "https://registry.yarnpkg.com/redux-socket-client/-/redux-socket-client-0.1.13.tgz#9c7c2bdbf630098fe418ed550b92f28573a2f849"
+  integrity sha512-X/g2nzYkSt+6uXNf3+qPTnj6xALh65fGqydICV8djSnbhIBVwISD97qzp+67WG21t3eie6UqXfIEY6KlORiTpw==

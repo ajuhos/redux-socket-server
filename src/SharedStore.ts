@@ -1,4 +1,4 @@
-import { PRESENT, ADD_CLIENT, tags } from 'redux-socket-client';
+import { PRESENT, ADD_CLIENT, CONNECT_CLIENT, DISCONNECT_CLIENT, tags } from 'redux-socket-client';
 import { EventEmitter } from 'events';
 import {SharedStoreQueue, LocalQueue, ReduxStore, SharedStoreAction, SharedStorePresent} from "./queue";
 import * as SocketIO from "socket.io";
@@ -90,6 +90,10 @@ export class SharedStore extends EventEmitter {
                             socket.on('present', () => socket.emit('present', extractPresent(clientId, manager)));
                             socket.emit('present', extractPresent(clientId, manager));
 
+                            socket.on('disconnect', () => {
+                                queue.enqueue(clientId,{type: DISCONNECT_CLIENT, payload: { id: clientId }})
+                            });
+
                             debug('client inited:', clientId);
                         }
                     };
@@ -101,8 +105,18 @@ export class SharedStore extends EventEmitter {
                     socket.on('present', () => socket.emit('present', extractPresent(clientId, manager)));
                     socket.emit('present', extractPresent(clientId, manager));
 
-                    if(manager) debug('manager connected:', clientId);
-                    else debug('client reconnected:', clientId)
+                    if(manager) {
+                        debug('manager connected:', clientId)
+                    }
+                    else {
+                        queue.enqueue(clientId,{type: CONNECT_CLIENT, payload: { id: clientId }});
+
+                        socket.on('disconnect', () => {
+                            queue.enqueue(clientId,{type: DISCONNECT_CLIENT, payload: { id: clientId }})
+                        });
+
+                        debug('client reconnected:', clientId)
+                    }
                 }
             });
         });
