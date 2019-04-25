@@ -14,6 +14,8 @@ export class SharedStore extends EventEmitter {
 
     private shouldStop = false;
 
+    queueInterval = 100;
+
     subscribe(listener: (action: SharedStoreAction, clientId: string|undefined, prevPresent: SharedStorePresent, present: SharedStorePresent) => void) {
         this.on('action', listener)
     }
@@ -65,7 +67,7 @@ export class SharedStore extends EventEmitter {
 
                 item = await queue.getNext();
             }
-            setImmediate(processQueue)
+            setTimeout(processQueue, this.queueInterval)
         };
         processQueue();
 

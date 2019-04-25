@@ -56,7 +56,7 @@ export class RedisQueue extends EventEmitter implements SharedStoreQueue  {
         this.lockInterval = setInterval(() => lock.extend(this.lockTTL).catch((e) => {
             debug(`[${this.prefix}] lost lock`, e);
             this.cancelLock()
-        }), 100);
+        }), this.lockTTL / 5);
 
         try {
             this.emit('lock');
