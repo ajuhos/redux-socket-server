@@ -3,6 +3,8 @@
 Lightweight framework for building distributed redux stores using socket.io.
 
 ## Features
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fajuhos%2Fredux-socket-server.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fajuhos%2Fredux-socket-server?ref=badge_shield)
+
 
  - Shared store and actions with a single middleware
  - Managers and clients for advanced scenarios
@@ -311,3 +313,5 @@ a new master will be assigned automatically within 1 second.
 
 The [MIT License](https://github.com/ajuhos/api-core/blob/master/LICENSE).
 Free forever. :)
+
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fajuhos%2Fredux-socket-server.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fajuhos%2Fredux-socket-server?ref=badge_large)
