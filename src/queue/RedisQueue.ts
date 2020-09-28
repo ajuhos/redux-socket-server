@@ -5,7 +5,7 @@ import {
     SharedStoreAction,
     SharedStorePresent
 } from "./SharedStoreQueue";
-import {RedisClient} from "redis";
+import {Redis} from 'ioredis';
 import {PRESENT} from "redux-socket-client";
 import * as Redlock from "redlock";
 import {EventEmitter} from "events";
@@ -14,7 +14,7 @@ const debug = require('debug')('redux-socket-server');
 
 export class RedisQueue extends EventEmitter implements SharedStoreQueue  {
     private readonly queue: SharedStoreQueueItem[] = [];
-    private readonly redis: RedisClient;
+    private readonly redis: Redis;
     private readonly nrp: any;
     private readonly prefix: string;
     private store: any = {};
@@ -25,7 +25,7 @@ export class RedisQueue extends EventEmitter implements SharedStoreQueue  {
 
     lockTTL = 1000;
 
-    constructor(redisPub: RedisClient, redisSub: RedisClient, prefix: string = '') {
+    constructor(redisPub: Redis, redisSub: Redis, prefix: string = '') {
         super();
 
         this.redis = redisPub;
