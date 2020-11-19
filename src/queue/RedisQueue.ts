@@ -9,13 +9,13 @@ import {Redis} from 'ioredis';
 import {PRESENT} from "redux-socket-client";
 import * as Redlock from "redlock";
 import {EventEmitter} from "events";
-const NRP = require('node-redis-pubsub');
+import {PubSub} from "../ioredis-pubsub";
 const debug = require('debug')('redux-socket-server');
 
 export class RedisQueue extends EventEmitter implements SharedStoreQueue  {
     private readonly queue: SharedStoreQueueItem[] = [];
     private readonly redis: Redis;
-    private readonly nrp: any;
+    private readonly pubsub: any;
     private readonly prefix: string;
     private store: any = {};
     private present: any = {};
@@ -29,7 +29,7 @@ export class RedisQueue extends EventEmitter implements SharedStoreQueue  {
         super();
 
         this.redis = redisPub;
-        this.nrp = new NRP({ emitter: redisPub, receiver: redisSub, scope: prefix });
+        this.pubsub = new PubSub(redisPub, redisSub, prefix);
         this.prefix = prefix ? `${prefix}:` : '';
 
         this.redlock = new Redlock(
@@ -41,7 +41,7 @@ export class RedisQueue extends EventEmitter implements SharedStoreQueue  {
                 retryCount:  0
             });
 
-        this.nrp.on('action', (item: SharedStoreQueueItem) => {
+        this.pubsub.on('action', (item: SharedStoreQueueItem) => {
             if(this.lock) return;
             this.queue.unshift(item);
 
@@ -142,7 +142,7 @@ export class RedisQueue extends EventEmitter implements SharedStoreQueue  {
                     resolve(data);
 
                     if(data) {
-                        this.nrp.emit('action', data);
+                        this.pubsub.emit('action', data);
 
                         debug(`[${this.prefix}] received action: ${data.action.type} (${data.client || 'no client'})`)
                     }

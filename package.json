@@ -1,6 +1,6 @@
 {
   "name": "redux-socket-server",
-  "version": "0.1.36",
+  "version": "0.1.37",
   "description": "Lightweight framework for building shared redux stores using socket.io",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -40,7 +40,6 @@
     "@types/node": "^12",
     "@types/redlock": "^3.0.2",
     "debug": "^4.1.1",
-    "node-redis-pubsub": "^4.0.0",
     "redlock": "^3.1.2"
   },
   "peerDependencies": {
